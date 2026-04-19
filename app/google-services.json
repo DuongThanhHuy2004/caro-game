@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "980584524322",
+    "project_id": "caro-6ba01",
+    "storage_bucket": "caro-6ba01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:980584524322:android:37f827b3f80aca57aeb87b",
+        "android_client_info": {
+          "package_name": "com.example.caro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTdWF6EVf52ScHPlKWtfPUWGK7dyo0ITI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
