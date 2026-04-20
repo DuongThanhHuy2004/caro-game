@@ -14,10 +14,30 @@ data class GameState(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is GameState) return false
-        return board.contentDeepEquals(other.board) &&
-                currentPlayer == other.currentPlayer &&
-                winner == other.winner &&
-                isDraw == other.isDraw
+
+        if (!board.contentDeepEquals(other.board)) return false
+        if (currentPlayer != other.currentPlayer) return false
+        if (winner != other.winner) return false
+        if (winningCells != other.winningCells) return false
+        if (isDraw != other.isDraw) return false
+        if (isVsAI != other.isVsAI) return false
+        if (scoreX != other.scoreX) return false
+        if (scoreO != other.scoreO) return false
+        if (lastMove != other.lastMove) return false
+
+        return true
     }
-    override fun hashCode(): Int = board.contentDeepHashCode()
+
+    override fun hashCode(): Int {
+        var result = board.contentDeepHashCode()
+        result = 31 * result + currentPlayer.hashCode()
+        result = 31 * result + (winner?.hashCode() ?: 0)
+        result = 31 * result + winningCells.hashCode()
+        result = 31 * result + isDraw.hashCode()
+        result = 31 * result + isVsAI.hashCode()
+        result = 31 * result + scoreX
+        result = 31 * result + scoreO
+        result = 31 * result + (lastMove?.hashCode() ?: 0)
+        return result
+    }
 }

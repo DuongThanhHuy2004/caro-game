@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,7 +28,6 @@ import com.example.caro.model.Player
 import com.example.caro.viewmodel.OnlineGameViewModel
 import com.example.caro.viewmodel.OnlineUiState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnlineScreen(
     vm: OnlineGameViewModel = viewModel(),
@@ -37,27 +35,40 @@ fun OnlineScreen(
 ) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
     val messages by vm.messages.collectAsStateWithLifecycle()
+    val black = Color(0xFF0D0D0D)
+    val bgColor = Color(0xFFF5F5F3)
+    val mutedColor = Color(0xFF999999)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Chơi Online", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { vm.leaveRoom(); onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                    }
+    Surface(modifier = Modifier.fillMaxSize(), color = bgColor) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+        ) {
+            // Top bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 16.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { vm.leaveRoom(); onBack() }, modifier = Modifier.size(40.dp)) {
+                    Text("←", fontSize = 22.sp, color = black)
                 }
-            )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                Spacer(Modifier.weight(1f))
+                Text("ONLINE", fontSize = 11.sp, letterSpacing = 2.sp, color = mutedColor)
+                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.size(40.dp))
+            }
+
             when (val state = uiState) {
                 is OnlineUiState.Idle -> IdleScreen(
                     onCreateRoom = { vm.createRoom() },
                     onJoinRoom = { vm.joinRoom(it) }
                 )
                 is OnlineUiState.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = black)
                 }
                 is OnlineUiState.InLobby -> LobbyScreen(
                     roomId = state.roomId,
@@ -74,10 +85,18 @@ fun OnlineScreen(
                     onPlayAgain = { vm.playAgain() }
                 )
                 is OnlineUiState.Error -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("❌ ${state.message}", color = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = { vm.leaveRoom() }) { Text("Thử lại") }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(state.message, color = Color(0xFF999999), fontSize = 13.sp, letterSpacing = 1.sp)
+                        Button(
+                            onClick = { vm.leaveRoom() },
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(containerColor = black)
+                        ) {
+                            Text("THỬ LẠI", fontSize = 11.sp, letterSpacing = 2.sp)
+                        }
                     }
                 }
             }
@@ -88,67 +107,135 @@ fun OnlineScreen(
 @Composable
 fun IdleScreen(onCreateRoom: () -> Unit, onJoinRoom: (String) -> Unit) {
     var roomCode by remember { mutableStateOf("") }
+    val black = Color(0xFF0D0D0D)
+    val mutedColor = Color(0xFF999999)
+    val gray = Color(0xFFE8E8E6)
+
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 28.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text("🌐", fontSize = 64.sp)
-        Spacer(Modifier.height(8.dp))
-        Text("Chơi Online", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(
+            "ONLINE",
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Thin,
+            letterSpacing = 6.sp,
+            color = black
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "PLAY WITH FRIENDS",
+            fontSize = 10.sp,
+            letterSpacing = 4.sp,
+            color = mutedColor
+        )
         Spacer(Modifier.height(48.dp))
+
         Button(
             onClick = onCreateRoom,
-            modifier = Modifier.fillMaxWidth().height(52.dp)
-        ) { Text("Tạo phòng mới", fontSize = 16.sp) }
+            modifier = Modifier.fillMaxWidth().height(58.dp),
+            shape = RoundedCornerShape(50),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = black,
+                contentColor = Color.White
+            )
+        ) {
+            Text("CREATE ROOM", fontSize = 12.sp, letterSpacing = 3.sp)
+        }
+
         Spacer(Modifier.height(24.dp))
-        HorizontalDivider()
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFDDDDDD))
+            Text("OR", fontSize = 10.sp, letterSpacing = 2.sp, color = mutedColor)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFDDDDDD))
+        }
+
         Spacer(Modifier.height(24.dp))
+
         OutlinedTextField(
             value = roomCode,
             onValueChange = { if (it.length <= 6) roomCode = it.filter { c -> c.isDigit() } },
-            label = { Text("Nhập mã phòng") },
+            placeholder = { Text("ROOM CODE", fontSize = 12.sp, letterSpacing = 2.sp, color = mutedColor) },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color(0xFFDDDDDD),
+                focusedBorderColor = black
+            )
         )
+
         Spacer(Modifier.height(12.dp))
-        OutlinedButton(
+
+        Button(
             onClick = { if (roomCode.length == 6) onJoinRoom(roomCode) },
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            enabled = roomCode.length == 6
-        ) { Text("Vào phòng", fontSize = 16.sp) }
+            modifier = Modifier.fillMaxWidth().height(58.dp),
+            shape = RoundedCornerShape(50),
+            enabled = roomCode.length == 6,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = gray,
+                contentColor = black,
+                disabledContainerColor = Color(0xFFF0F0EE),
+                disabledContentColor = mutedColor
+            )
+        ) {
+            Text("JOIN ROOM", fontSize = 12.sp, letterSpacing = 3.sp)
+        }
     }
 }
 
 @Composable
 fun LobbyScreen(roomId: String, isHost: Boolean) {
+    val black = Color(0xFF0D0D0D)
+    val mutedColor = Color(0xFF999999)
+
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         if (isHost) {
-            Text("Phòng đã tạo!", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(
+                "ROOM CODE",
+                fontSize = 10.sp,
+                letterSpacing = 4.sp,
+                color = mutedColor
+            )
             Spacer(Modifier.height(16.dp))
-            Text("Gửi mã này cho bạn bè:", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(12.dp))
-            Card(colors = CardDefaults.cardColors(MaterialTheme.colorScheme.primaryContainer)) {
-                Text(
-                    roomId,
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 40.dp, vertical = 20.dp),
-                    letterSpacing = 8.sp
-                )
-            }
+            Text(
+                roomId,
+                fontSize = 52.sp,
+                fontWeight = FontWeight.Thin,
+                letterSpacing = 12.sp,
+                color = black
+            )
             Spacer(Modifier.height(32.dp))
-            CircularProgressIndicator()
-            Spacer(Modifier.height(12.dp))
-            Text("Đang chờ đối thủ...", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = black, strokeWidth = 1.5.dp)
             Spacer(Modifier.height(16.dp))
-            Text("Đang vào phòng $roomId...")
+            Text(
+                "WAITING FOR OPPONENT",
+                fontSize = 10.sp,
+                letterSpacing = 3.sp,
+                color = mutedColor
+            )
+        } else {
+            CircularProgressIndicator(color = black, strokeWidth = 1.5.dp)
+            Spacer(Modifier.height(20.dp))
+            Text(
+                "JOINING $roomId",
+                fontSize = 10.sp,
+                letterSpacing = 3.sp,
+                color = mutedColor
+            )
         }
     }
 }
@@ -164,6 +251,8 @@ fun OnlineGameContent(
     onLeaveRoom: () -> Unit,
     onPlayAgain: () -> Unit
 ) {
+    val black = Color(0xFF0D0D0D)
+    val mutedColor = Color(0xFF999999)
     val myTurn = (isHost && room.currentPlayer == 1) || (!isHost && room.currentPlayer == 2)
     var chatText by remember { mutableStateOf("") }
     var showChat by remember { mutableStateOf(false) }
@@ -183,15 +272,9 @@ fun OnlineGameContent(
         }
     }
 
-    val winnerPlayer = when (room.winner) {
-        1 -> Player.X
-        2 -> Player.O
-        else -> null
-    }
-
     val gameState = GameState(
         board = boardArray,
-        winner = winnerPlayer,
+        winner = when (room.winner) { 1 -> Player.X; 2 -> Player.O; else -> null },
         lastMove = if (room.lastMoveRow >= 0) Pair(room.lastMoveRow, room.lastMoveCol) else null
     )
 
@@ -201,28 +284,25 @@ fun OnlineGameContent(
             .padding(horizontal = 12.dp)
             .imePadding()
     ) {
-        // Status bar
-        val statusText = when {
-            room.winner == 3 -> "Hòa! 🤝"
-            room.winner != 0 ->
-                if ((isHost && room.winner == 1) || (!isHost && room.winner == 2))
-                    "Bạn thắng! 🎉" else "Bạn thua! 😢"
-            myTurn -> "Lượt của bạn (${if (isHost) "X" else "O"})"
-            else -> "Đối thủ đang đánh..."
-        }
-
-        Card(
+        // Status
+        Column(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            colors = CardDefaults.cardColors(
-                if (myTurn && room.winner == 0) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.surfaceVariant
-            )
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text("SESSION STATUS", fontSize = 10.sp, letterSpacing = 3.sp, color = mutedColor)
+            Spacer(Modifier.height(3.dp))
             Text(
-                statusText,
-                modifier = Modifier.fillMaxWidth().padding(12.dp),
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Medium
+                when {
+                    room.winner == 3 -> "DRAW"
+                    room.winner != 0 ->
+                        if ((isHost && room.winner == 1) || (!isHost && room.winner == 2)) "YOU WIN" else "YOU LOSE"
+                    myTurn -> "YOUR TURN"
+                    else -> "OPPONENT TURN"
+                },
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp,
+                color = black
             )
         }
 
@@ -242,20 +322,28 @@ fun OnlineGameContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("💬 Chat (${messages.size})", fontWeight = FontWeight.Medium)
+            Text(
+                "CHAT (${messages.size})",
+                fontSize = 10.sp,
+                letterSpacing = 2.sp,
+                color = mutedColor,
+                fontWeight = FontWeight.Medium
+            )
             TextButton(onClick = { showChat = !showChat }) {
-                Text(if (showChat) "Ẩn" else "Hiện")
+                Text(
+                    if (showChat) "HIDE" else "SHOW",
+                    fontSize = 10.sp,
+                    letterSpacing = 2.sp,
+                    color = black
+                )
             }
         }
 
         AnimatedVisibility(showChat) {
             Column {
-                // Messages list
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     items(messages) { msg ->
@@ -267,23 +355,20 @@ fun OnlineGameContent(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(
-                                        if (isMe) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.surfaceVariant
-                                    )
+                                    .background(if (isMe) black else Color(0xFFE8E8E6))
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
                                 Column {
                                     if (!isMe) Text(
                                         msg.senderName,
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        fontSize = 9.sp,
+                                        letterSpacing = 1.sp,
+                                        color = mutedColor
                                     )
                                     Text(
                                         msg.text,
-                                        color = if (isMe) Color.White
-                                        else MaterialTheme.colorScheme.onSurface,
-                                        fontSize = 14.sp
+                                        color = if (isMe) Color.White else black,
+                                        fontSize = 13.sp
                                     )
                                 }
                             }
@@ -291,7 +376,6 @@ fun OnlineGameContent(
                     }
                 }
 
-                // Chat input
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -302,9 +386,13 @@ fun OnlineGameContent(
                         value = chatText,
                         onValueChange = { chatText = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Nhắn tin...") },
+                        placeholder = { Text("MESSAGE", fontSize = 10.sp, letterSpacing = 2.sp, color = mutedColor) },
                         singleLine = true,
-                        enabled = true
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color(0xFFDDDDDD),
+                            focusedBorderColor = black
+                        )
                     )
                     IconButton(
                         onClick = {
@@ -314,36 +402,61 @@ fun OnlineGameContent(
                             }
                         }
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, "Send")
+                        Icon(Icons.AutoMirrored.Filled.Send, "Send", tint = black)
                     }
                 }
             }
         }
     }
 
-    // Win/Lose/Draw dialog
+    // Win dialog
     if (room.winner != 0) {
         AlertDialog(
             onDismissRequest = {},
+            containerColor = Color(0xFFF5F5F3),
+            shape = RoundedCornerShape(20.dp),
             title = {
                 Text(
                     when {
-                        room.winner == 3 -> "Hòa! 🤝"
-                        (isHost && room.winner == 1) || (!isHost && room.winner == 2) -> "Bạn thắng! 🎉"
-                        else -> "Bạn thua! 😢"
+                        room.winner == 3 -> "DRAW"
+                        (isHost && room.winner == 1) || (!isHost && room.winner == 2) -> "YOU WIN"
+                        else -> "YOU LOSE"
                     },
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 4.sp,
+                    color = black,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             },
             confirmButton = {
-                Button(onClick = onLeaveRoom) {
-                    Text("Thoát phòng")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = onPlayAgain) {
-                    Text("Chơi lại")
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        onClick = onLeaveRoom,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFE8E8E6),
+                            contentColor = black
+                        )
+                    ) {
+                        Text("LEAVE", fontSize = 11.sp, letterSpacing = 2.sp)
+                    }
+                    Button(
+                        onClick = onPlayAgain,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = black,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("REMATCH", fontSize = 11.sp, letterSpacing = 2.sp)
+                    }
                 }
             }
         )

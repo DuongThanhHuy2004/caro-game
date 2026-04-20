@@ -7,6 +7,7 @@ import com.example.caro.model.GameState
 import com.example.caro.model.Player
 import com.example.caro.model.opponent
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,7 @@ class GameViewModel : ViewModel() {
     val state: StateFlow<GameState> = _state
 
     private val ai = GomokuAI()
+    private var aiJob: Job? = null
     val boardSize = 15
     val winLen = 5
 
@@ -46,26 +48,32 @@ class GameViewModel : ViewModel() {
     }
 
     private fun aiMove() {
-        viewModelScope.launch {
+        aiJob = viewModelScope.launch {
             delay(300)
             val s = _state.value
             if (s.winner != null || s.isDraw) return@launch
+
             val (r, c) = withContext(Dispatchers.Default) {
                 ai.getBestMove(s.board.map { it.copyOf() }.toTypedArray(), Player.O)
             }
-            val newBoard = s.board.map { it.copyOf() }.toTypedArray()
-            newBoard[r][c] = Player.O
-            val (winner, winCells) = checkWin(newBoard, r, c, Player.O)
-            val isDraw = winner == null && newBoard.all { row -> row.all { it != null } }
-            _state.value = s.copy(
-                board = newBoard,
-                currentPlayer = if (winner != null || isDraw) Player.O else Player.X,
-                winner = winner,
-                winningCells = winCells,
-                isDraw = isDraw,
-                lastMove = Pair(r, c),
-                scoreO = if (winner == Player.O) s.scoreO + 1 else s.scoreO
-            )
+
+            val currentState = _state.value
+            if (currentState.isVsAI && currentState.currentPlayer == Player.O && currentState.winner == null) {
+                val newBoard = currentState.board.map { it.copyOf() }.toTypedArray()
+                newBoard[r][c] = Player.O
+                val (winner, winCells) = checkWin(newBoard, r, c, Player.O)
+                val isDraw = winner == null && newBoard.all { row -> row.all { it != null } }
+
+                _state.value = currentState.copy(
+                    board = newBoard,
+                    currentPlayer = if (winner != null || isDraw) Player.O else Player.X,
+                    winner = winner,
+                    winningCells = winCells,
+                    isDraw = isDraw,
+                    lastMove = Pair(r, c),
+                    scoreO = if (winner == Player.O) currentState.scoreO + 1 else currentState.scoreO
+                )
+            }
         }
     }
 
@@ -87,11 +95,13 @@ class GameViewModel : ViewModel() {
     }
 
     fun resetGame() {
+        aiJob?.cancel()
         val s = _state.value
         _state.value = GameState(isVsAI = s.isVsAI, scoreX = s.scoreX, scoreO = s.scoreO)
     }
 
     fun setVsAI(vsAI: Boolean) {
-        _state.value = GameState(isVsAI = vsAI)
+        aiJob?.cancel()
+        _state.value = _state.value.copy(isVsAI = vsAI)
     }
 }
