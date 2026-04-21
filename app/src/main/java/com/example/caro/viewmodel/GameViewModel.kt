@@ -23,6 +23,9 @@ class GameViewModel : ViewModel() {
     val boardSize = 15
     val winLen = 5
 
+    var onPiecePlace: (() -> Unit)? = null
+    var onWin: (() -> Unit)? = null
+
     fun onCellClick(row: Int, col: Int) {
         val s = _state.value
         if (s.board[row][col] != null || s.winner != null || s.isDraw) return
@@ -44,10 +47,17 @@ class GameViewModel : ViewModel() {
             scoreO = if (winner == Player.O) s.scoreO + 1 else s.scoreO
         )
 
-        if (winner == null && !isDraw && s.isVsAI) aiMove()
+        onPiecePlace?.invoke()
+        if (winner != null || isDraw) {
+            onWin?.invoke()
+            return
+        }
+
+        if (s.isVsAI) aiMove()
     }
 
     private fun aiMove() {
+        aiJob?.cancel()
         aiJob = viewModelScope.launch {
             delay(300)
             val s = _state.value
@@ -73,6 +83,9 @@ class GameViewModel : ViewModel() {
                     lastMove = Pair(r, c),
                     scoreO = if (winner == Player.O) currentState.scoreO + 1 else currentState.scoreO
                 )
+
+                onPiecePlace?.invoke()
+                if (winner != null || isDraw) onWin?.invoke()
             }
         }
     }

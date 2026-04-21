@@ -9,6 +9,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
+import com.example.caro.R
 
 @Composable
 fun MenuScreen(
@@ -16,6 +24,7 @@ fun MenuScreen(
     onPlayPvP: () -> Unit,
     onPlayOnline: () -> Unit
 ) {
+    var showSettings by remember { mutableStateOf(false) }
     val black = Color(0xFF0D0D0D)
     val bgColor = Color(0xFFF5F5F3)
     val gray = Color(0xFFE8E8E6)
@@ -28,7 +37,22 @@ fun MenuScreen(
                 .systemBarsPadding()
                 .padding(horizontal = 28.dp)
         ) {
-            Spacer(Modifier.height(48.dp))
+            // Settings icon top right
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = { showSettings = true }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.setting_alt_line_light),
+                        contentDescription = "Settings",
+                        tint = mutedColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
             Text(
                 text = "GOMOKU",
                 fontSize = 64.sp,
@@ -41,7 +65,6 @@ fun MenuScreen(
             Text(
                 text = "THE SILENT STRATEGY",
                 fontSize = 10.sp,
-                fontWeight = FontWeight.Normal,
                 letterSpacing = 4.sp,
                 color = mutedColor
             )
@@ -59,9 +82,7 @@ fun MenuScreen(
             ) {
                 Text("VS BOT", fontSize = 12.sp, letterSpacing = 3.sp)
             }
-
             Spacer(Modifier.height(10.dp))
-
             Button(
                 onClick = onPlayPvP,
                 modifier = Modifier.fillMaxWidth().height(58.dp),
@@ -73,9 +94,7 @@ fun MenuScreen(
             ) {
                 Text("LOCAL 2P", fontSize = 12.sp, letterSpacing = 3.sp)
             }
-
             Spacer(Modifier.height(10.dp))
-
             Button(
                 onClick = onPlayOnline,
                 modifier = Modifier.fillMaxWidth().height(58.dp),
@@ -87,8 +106,11 @@ fun MenuScreen(
             ) {
                 Text("ONLINE", fontSize = 12.sp, letterSpacing = 3.sp)
             }
-
             Spacer(Modifier.height(40.dp))
         }
+    }
+
+    if (showSettings) {
+        SettingsDialog(onDismiss = { showSettings = false })
     }
 }

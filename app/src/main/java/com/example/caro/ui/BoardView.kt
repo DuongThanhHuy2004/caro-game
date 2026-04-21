@@ -25,7 +25,7 @@ fun BoardView(
 ) {
     val black = Color(0xFF0D0D0D)
     val bgWhite = Color(0xFFF5F5F3)
-    val gridColor = Color(0xFF777777)
+    val gridColor = Color(0xFF444444)
     val lastMoveColor = Color(0xFFEEEEEC)
     val winColor = Color(0xFFE0E0DE)
 

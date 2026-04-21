@@ -17,6 +17,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.caro.model.Player
 import com.example.caro.viewmodel.GameViewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.caro.audio.SoundManagerProvider
 
 @Composable
 fun GameScreen(vm: GameViewModel = viewModel(), onBack: () -> Unit) {
@@ -24,6 +26,13 @@ fun GameScreen(vm: GameViewModel = viewModel(), onBack: () -> Unit) {
     val black = Color(0xFF0D0D0D)
     val bgColor = Color(0xFFF5F5F3)
     val mutedColor = Color(0xFF999999)
+    val context = LocalContext.current
+    val sound = remember { SoundManagerProvider.get(context) }
+
+    LaunchedEffect(Unit) {
+        vm.onPiecePlace = { sound.playPlace() }
+        vm.onWin = { sound.playWin() }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = bgColor) {
         Column(
