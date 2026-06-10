@@ -3,6 +3,7 @@ package com.example.caro.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.caro.ai.GomokuAI
+import com.example.caro.model.Difficulty
 import com.example.caro.model.GameState
 import com.example.caro.model.Player
 import com.example.caro.model.opponent
@@ -64,7 +65,7 @@ class GameViewModel : ViewModel() {
             if (s.winner != null || s.isDraw) return@launch
 
             val (r, c) = withContext(Dispatchers.Default) {
-                ai.getBestMove(s.board.map { it.copyOf() }.toTypedArray(), Player.O)
+                ai.getBestMove(s.board.map { it.copyOf() }.toTypedArray(), Player.O, s.difficulty)
             }
 
             val currentState = _state.value
@@ -110,11 +111,20 @@ class GameViewModel : ViewModel() {
     fun resetGame() {
         aiJob?.cancel()
         val s = _state.value
-        _state.value = GameState(isVsAI = s.isVsAI, scoreX = s.scoreX, scoreO = s.scoreO)
+        _state.value = GameState(isVsAI = s.isVsAI, difficulty = s.difficulty, scoreX = s.scoreX, scoreO = s.scoreO)
     }
 
     fun setVsAI(vsAI: Boolean) {
         aiJob?.cancel()
         _state.value = _state.value.copy(isVsAI = vsAI)
+    }
+
+    fun setDifficulty(difficulty: Difficulty) {
+        aiJob?.cancel()
+        _state.value = _state.value.copy(difficulty = difficulty)
+        if (_state.value.board.all { row -> row.all { it == null } }) {
+            // If board is empty, just update. If game is in progress, maybe don't change or reset?
+            // Usually, changing difficulty takes effect on next move.
+        }
     }
 }

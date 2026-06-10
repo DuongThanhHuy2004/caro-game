@@ -7,6 +7,7 @@ data class GameState(
     val winningCells: List<Pair<Int, Int>> = emptyList(),
     val isDraw: Boolean = false,
     val isVsAI: Boolean = true,
+    val difficulty: Difficulty = Difficulty.NORMAL,
     val scoreX: Int = 0,
     val scoreO: Int = 0,
     val lastMove: Pair<Int, Int>? = null
@@ -21,6 +22,7 @@ data class GameState(
         if (winningCells != other.winningCells) return false
         if (isDraw != other.isDraw) return false
         if (isVsAI != other.isVsAI) return false
+        if (difficulty != other.difficulty) return false
         if (scoreX != other.scoreX) return false
         if (scoreO != other.scoreO) return false
         if (lastMove != other.lastMove) return false
@@ -35,6 +37,7 @@ data class GameState(
         result = 31 * result + winningCells.hashCode()
         result = 31 * result + isDraw.hashCode()
         result = 31 * result + isVsAI.hashCode()
+        result = 31 * result + difficulty.hashCode()
         result = 31 * result + scoreX
         result = 31 * result + scoreO
         result = 31 * result + (lastMove?.hashCode() ?: 0)
