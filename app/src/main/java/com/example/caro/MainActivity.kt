@@ -88,7 +88,12 @@ fun AppRoot() {
             OnlineScreen(onBack = { screen = "menu" })
         }
         else -> MenuScreen(
-            onPlayAI = { vm.resetGame(); vm.setVsAI(true); screen = "game" },
+            onPlayAI = { difficulty -> 
+                vm.setDifficulty(difficulty)
+                vm.resetGame()
+                vm.setVsAI(true)
+                screen = "game" 
+            },
             onPlayPvP = { vm.resetGame(); vm.setVsAI(false); screen = "game" },
             onPlayOnline = { screen = "online" }
         )

@@ -17,14 +17,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import com.example.caro.R
+import com.example.caro.model.Difficulty
 
 @Composable
 fun MenuScreen(
-    onPlayAI: () -> Unit,
+    onPlayAI: (Difficulty) -> Unit,
     onPlayPvP: () -> Unit,
     onPlayOnline: () -> Unit
 ) {
     var showSettings by remember { mutableStateOf(false) }
+    var showDifficultyDialog by remember { mutableStateOf(false) }
+    
     val black = Color(0xFF0D0D0D)
     val bgColor = Color(0xFFF5F5F3)
     val gray = Color(0xFFE8E8E6)
@@ -72,7 +75,7 @@ fun MenuScreen(
             Spacer(Modifier.weight(1f))
 
             Button(
-                onClick = onPlayAI,
+                onClick = { showDifficultyDialog = true },
                 modifier = Modifier.fillMaxWidth().height(58.dp),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
@@ -112,5 +115,15 @@ fun MenuScreen(
 
     if (showSettings) {
         SettingsDialog(onDismiss = { showSettings = false })
+    }
+
+    if (showDifficultyDialog) {
+        DifficultyDialog(
+            onDifficultySelected = { difficulty ->
+                showDifficultyDialog = false
+                onPlayAI(difficulty)
+            },
+            onDismiss = { showDifficultyDialog = false }
+        )
     }
 }
